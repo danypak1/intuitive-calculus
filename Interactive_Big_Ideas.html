@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intuitive Calculus — The Four Big Ideas, Interactively</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@500;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:      #F6F5F1;
+    --paper-line: #E4E1D6;
+    --card:       #FFFFFF;
+    --ink:        #202B42;
+    --ink-soft:   #5B6478;
+    --ink-faint:  #63698B;
+    --brick:      #A6392B;
+    --brick-dim:  #C77A6E;
+    --sage:       #3F6F5E;
+    --sage-dim:   #CBDBD4;
+    --sage-bg:    #EDF3F0;
+    --gold:       #B8862E;
+    --rule:       #DEDAD0;
+    --shadow:     0 1px 2px rgba(32,43,66,0.04), 0 6px 20px rgba(32,43,66,0.05);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+      var(--paper);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--sage); }
+  .mono{ font-family:'Source Code Pro', monospace; }
+
+  header.top{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; padding:14px 28px;
+    background:rgba(246,245,241,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--rule);
+  }
+  header.top .brand{ font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem; }
+  header.top .brand em{ color:var(--brick); font-style:normal; }
+  header.top a.back{
+    font-size:0.85rem; font-weight:600; text-decoration:none;
+    color:var(--ink-soft); border:1px solid var(--rule); border-radius:999px;
+    padding:7px 14px; transition:border-color .15s ease, color .15s ease;
+  }
+  header.top a.back:hover{ border-color:var(--sage); color:var(--sage); }
+
+  .hero{ max-width:900px; margin:0 auto; padding:56px 28px 20px; text-align:center; }
+  .hero .kicker{
+    font-size:0.78rem; text-transform:uppercase; letter-spacing:0.11em;
+    color:var(--sage); font-weight:600; margin-bottom:14px;
+  }
+  .hero h1{
+    font-family:'Fraunces', serif; font-weight:600;
+    font-size:clamp(2rem, 4.4vw, 2.9rem); line-height:1.1; margin:0 0 16px;
+  }
+  .hero h1 .accent{ color:var(--brick); font-style:italic; font-weight:500; }
+  .hero p{ color:var(--ink-soft); font-size:1.05rem; max-width:58ch; margin:0 auto; }
+
+  .toc{
+    max-width:900px; margin:34px auto 0; padding:0 28px;
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  }
+  .toc a{
+    text-decoration:none; font-size:0.86rem; font-weight:600; color:var(--ink);
+    border:1px solid var(--rule); background:var(--card);
+    padding:8px 15px; border-radius:999px;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .toc a:hover{ border-color:var(--brick); color:var(--brick); }
+
+  main{ max-width:900px; margin:0 auto; padding:20px 28px 40px; }
+
+  .module{
+    background:var(--card); border:1px solid var(--rule); border-radius:16px;
+    box-shadow:var(--shadow); padding:32px; margin:46px 0;
+    scroll-margin-top:88px;
+  }
+  .module .eyebrow{
+    display:flex; align-items:center; gap:10px;
+    font-size:0.78rem; text-transform:uppercase; letter-spacing:0.1em;
+    color:var(--sage); font-weight:600; margin-bottom:10px;
+  }
+  .module .eyebrow .idx{
+    width:22px; height:22px; border-radius:50%;
+    background:var(--sage); color:#fff; display:inline-flex;
+    align-items:center; justify-content:center; font-size:0.72rem;
+    font-family:'Fraunces', serif; letter-spacing:0;
+  }
+  .module h2{ font-family:'Fraunces', serif; font-weight:600; font-size:1.55rem; margin:0 0 10px; }
+  .module .blurb{ color:var(--ink-soft); max-width:64ch; margin-bottom:22px; }
+  .module .blurb strong{ color:var(--ink); }
+
+  .stage{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap:22px; align-items:start;
+  }
+  .canvas-wrap{
+    background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:10px;
+  }
+  canvas{ display:block; width:100%; height:auto; border-radius:6px; }
+
+  .controls{ display:flex; flex-direction:column; gap:16px; }
+  .control-block label{
+    display:block; font-size:0.82rem; font-weight:600; color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  input[type=range]{
+    width:100%; accent-color:var(--brick); cursor:pointer;
+  }
+  .btnrow{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btnrow button{
+    font-family:inherit; font-size:0.82rem; font-weight:600;
+    padding:7px 13px; border-radius:8px; border:1px solid var(--rule);
+    background:var(--card); color:var(--ink-soft); cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .btnrow button:hover{ border-color:var(--sage); color:var(--sage); }
+  .btnrow button.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+
+  .readout{
+    background:var(--sage-bg); border:1px solid var(--sage-dim); border-radius:10px;
+    padding:14px 16px; font-size:0.9rem;
+  }
+  .readout .row{ display:flex; justify-content:space-between; padding:3px 0; }
+  .readout .row span:first-child{ color:var(--ink-soft); }
+  .readout .row span:last-child{ font-family:'Source Code Pro', monospace; font-weight:600; }
+  .readout .highlight span:last-child{ color:var(--brick); }
+  .readout .match span:last-child{ color:var(--sage); }
+
+  .insight{
+    margin-top:18px; padding-top:16px; border-top:1px dashed var(--rule);
+    font-size:0.92rem; color:var(--ink-soft);
+  }
+  .insight strong{ color:var(--ink); }
+
+  @media (max-width:720px){
+    .stage{ grid-template-columns:1fr; }
+    .module{ padding:22px; }
+
+    header.top{ flex-wrap:wrap; row-gap:8px; padding:12px 20px; }
+    header.top .brand{ flex:1 1 100%; font-size:0.95rem; }
+  }
+
+  footer{
+    max-width:900px; margin:0 auto; padding:20px 28px 70px;
+    border-top:1px solid var(--rule); padding-top:26px; text-align:center;
+  }
+  footer a{ font-weight:600; text-decoration:none; }
+  footer p{ color:var(--ink-faint); font-size:0.85rem; }
+
+  :focus-visible{ outline:2px solid var(--brick); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Intuitive Calculus <em>·</em> Big Ideas, Interactively</div>
+  <a class="back" href="Course_Navigation.html">&larr; Back to course map</a>
+</header>
+
+<section class="hero">
+  <div class="kicker">Four ideas, one thread</div>
+  <h1>Everything in this course is really<br>just <span class="accent">four ideas</span>, dressed up differently.</h1>
+  <p>You don't need forty-one units of intuition — you need four. Every technique you'll learn is a variation on one of these. Play with each one until it clicks; the formulas in the units will just be this, written more precisely.</p>
+</section>
+
+<nav class="toc">
+  <a href="#m1">1. Limits</a>
+  <a href="#m2">2. The Derivative</a>
+  <a href="#m3">3. The Integral</a>
+  <a href="#m4">4. The Fundamental Theorem</a>
+</nav>
+
+<main>
+
+  <!-- MODULE 1: LIMITS -->
+  <section class="module" id="m1">
+    <div class="eyebrow"><span class="idx">1</span> Limits</div>
+    <h2>What a function is doing <em>near</em> a point — even if it's undefined right there</h2>
+    <p class="blurb">The function below has a hole at x=2 — it's genuinely undefined there. But drag the point toward x=2 from either side, and watch what value it keeps approaching anyway. <strong>That approached value is the limit</strong> — it doesn't care that the function itself has a gap.</p>
+
+    <div class="stage">
+      <div class="canvas-wrap"><canvas id="c1" width="560" height="340"></canvas></div>
+      <div class="controls">
+        <div class="control-block">
+          <label for="s1">Drag x toward the hole at x = 2</label>
+          <input type="range" id="s1" min="0" max="4" step="0.01" value="0">
+        </div>
+        <div class="readout">
+          <div class="row"><span>x =</span><span id="r1-x">0.00</span></div>
+          <div class="row highlight"><span>f(x) =</span><span id="r1-fx">2.00</span></div>
+          <div class="row"><span>f(2) itself</span><span>undefined</span></div>
+          <div class="row match"><span>limit as x&rarr;2</span><span>4</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="insight"><strong>The idea:</strong> f(x) = (x&sup2;&minus;4)/(x&minus;2) simplifies to x+2 everywhere except exactly at x=2, where it's a 0/0 puzzle. The graph has a hole, not a jump — so from both sides, the value keeps closing in on 4. That's the whole definition of a limit: not "what happens at the point," but "what happens as you get arbitrarily close to it."</div>
+  </section>
+
+  <!-- MODULE 2: DERIVATIVE -->
+  <section class="module" id="m2">
+    <div class="eyebrow"><span class="idx">2</span> The Derivative</div>
+    <h2>A tangent line is a secant line that ran out of distance</h2>
+    <p class="blurb">Fix one point on the curve. Pick a second point some distance <span class="mono">h</span> away, and draw the line through both — that's a <strong>secant line</strong>, and its slope is an average rate of change. Now shrink <span class="mono">h</span> toward zero. Watch the slope settle on a single number — <strong>that's the derivative</strong>, the instantaneous rate of change at that one point.</p>
+
+    <div class="stage">
+      <div class="canvas-wrap"><canvas id="c2" width="560" height="340"></canvas></div>
+      <div class="controls">
+        <div class="control-block">
+          <label for="s2">Shrink h toward 0 (h can be negative too — try approaching from the left)</label>
+          <input type="range" id="s2" min="-2" max="2" step="0.01" value="1.6">
+        </div>
+        <div class="readout">
+          <div class="row"><span>point P</span><span>(1, 1)</span></div>
+          <div class="row"><span>h =</span><span id="r2-h">1.60</span></div>
+          <div class="row highlight"><span>secant slope =</span><span id="r2-slope">3.60</span></div>
+          <div class="row match"><span>f&prime;(1) (true slope)</span><span>2</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="insight"><strong>The idea:</strong> for f(x)=x&sup2;, the secant slope works out to exactly 2+h — plug in any h and check. As h&rarr;0, that expression heads straight to 2, no matter which side you approach from. That's f&prime;(1)=2: not a rate over some interval, but a rate at a single instant.</div>
+  </section>
+
+  <!-- MODULE 3: INTEGRAL -->
+  <section class="module" id="m3">
+    <div class="eyebrow"><span class="idx">3</span> The Integral</div>
+    <h2>Area under a curve is just a lot of thin rectangles, added up</h2>
+    <p class="blurb">You can't find the exact area under a curve with a rectangle — curves aren't straight. But you <em>can</em> chop the region into many thin rectangles, add up their areas, and get a good estimate. Slide <span class="mono">n</span> up, and watch the jagged staircase hug the curve tighter and tighter.</p>
+
+    <div class="stage">
+      <div class="canvas-wrap"><canvas id="c3" width="560" height="340"></canvas></div>
+      <div class="controls">
+        <div class="control-block">
+          <label for="s3">Number of rectangles: <span id="r3-n-label">6</span></label>
+          <input type="range" id="s3" min="2" max="60" step="1" value="6">
+        </div>
+        <div class="control-block">
+          <label>Where each rectangle's height comes from</label>
+          <div class="btnrow">
+            <button data-mode="left" class="active">Left edge</button>
+            <button data-mode="right">Right edge</button>
+            <button data-mode="mid">Midpoint</button>
+          </div>
+        </div>
+        <div class="readout">
+          <div class="row highlight"><span>estimated area =</span><span id="r3-sum">—</span></div>
+          <div class="row match"><span>exact area (calculus) =</span><span>36.000</span></div>
+          <div class="row"><span>gap</span><span id="r3-gap">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="insight"><strong>The idea:</strong> this is a Riemann sum. As n&rarr;&infin;, the rectangles get infinitely thin and the estimate becomes exact — that limiting process <em>is</em> the definite integral, the area under &minus;0.5x&sup2;+4x from 0 to 6, which works out to exactly 36. The Fundamental Theorem (next module) is what lets you skip this whole rectangle-counting process entirely.</div>
+  </section>
+
+  <!-- MODULE 4: FTC -->
+  <section class="module" id="m4">
+    <div class="eyebrow"><span class="idx">4</span> The Fundamental Theorem</div>
+    <h2>The slope of the area function is the original function</h2>
+    <p class="blurb">Let A(x) be the running total area under f from 0 up to x — it grows as x moves right. Drag x and watch two things happen together: the shaded area under f grows, and the point tracing A(x) moves. The <strong>slope</strong> of that traced curve, at any instant, is exactly the height of f at that same instant.</p>
+
+    <div class="stage">
+      <div class="canvas-wrap"><canvas id="c4" width="560" height="340"></canvas></div>
+      <div class="controls">
+        <div class="control-block">
+          <label for="s4">Drag x</label>
+          <input type="range" id="s4" min="0.1" max="6" step="0.02" value="3">
+        </div>
+        <div class="readout">
+          <div class="row"><span>x =</span><span id="r4-x">3.00</span></div>
+          <div class="row"><span>f(x) (height of curve)</span><span id="r4-fx">2.50</span></div>
+          <div class="row highlight"><span>A(x) (area so far)</span><span id="r4-Ax">5.25</span></div>
+          <div class="row match"><span>slope of A at x</span><span id="r4-slope">2.50</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="insight"><strong>The idea:</strong> f(x) and the slope of A at x always match, at every value of x you drag to. That's the Fundamental Theorem of Calculus: A&prime;(x)=f(x). It's the bridge that connects Module 2 (derivative) and Module 3 (area) into a single idea — differentiating undoes integrating.</div>
+  </section>
+
+</main>
+
+<footer>
+  <p><a href="Course_Navigation.html">&larr; Back to the full course map</a></p>
+  <p>Every formula in Units 1–41 is one of these four ideas, written precisely enough to compute with.</p>
+</footer>
+
+<script>
+/* ---------- shared drawing helpers ---------- */
+function makeMapper(canvas, xMin, xMax, yMin, yMax, pad){
+  pad = pad || {l:38, r:14, t:14, b:30};
+  const W = canvas.width, H = canvas.height;
+  const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
+  return {
+    x: (xm)=> pad.l + (xm - xMin) / (xMax - xMin) * plotW,
+    y: (ym)=> pad.t + plotH - (ym - yMin) / (yMax - yMin) * plotH,
+    pad, plotW, plotH
+  };
+}
+function drawAxes(ctx, m, xMin, xMax, yMin, yMax, step){
+  ctx.save();
+  ctx.strokeStyle = '#DEDAD0'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#8992A3'; ctx.font = '11px "Source Sans 3", sans-serif';
+  for(let gx = Math.ceil(xMin/step)*step; gx <= xMax; gx += step){
+    ctx.beginPath(); ctx.moveTo(m.x(gx), m.pad.t); ctx.lineTo(m.x(gx), m.pad.t+m.plotH); ctx.stroke();
+  }
+  for(let gy = Math.ceil(yMin/step)*step; gy <= yMax; gy += step){
+    ctx.beginPath(); ctx.moveTo(m.pad.l, m.y(gy)); ctx.lineTo(m.pad.l+m.plotW, m.y(gy)); ctx.stroke();
+  }
+  ctx.strokeStyle = '#5B6478'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(m.pad.l, m.y(0)); ctx.lineTo(m.pad.l+m.plotW, m.y(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(m.x(0), m.pad.t); ctx.lineTo(m.x(0), m.pad.t+m.plotH); ctx.stroke();
+  ctx.restore();
+}
+function plotFn(ctx, m, f, xMin, xMax, color, width){
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = width || 2.4; ctx.beginPath();
+  let started = false;
+  for(let px = 0; px <= m.plotW; px++){
+    const xm = xMin + (px/m.plotW)*(xMax-xMin);
+    const ym = f(xm);
+    if(ym === null || !isFinite(ym)){ started = false; continue; }
+    const py = m.y(ym), pxr = m.x(xm);
+    if(!started){ ctx.moveTo(pxr, py); started = true; } else { ctx.lineTo(pxr, py); }
+  }
+  ctx.stroke(); ctx.restore();
+}
+function dot(ctx, m, xm, ym, color, r, filled){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(m.x(xm), m.y(ym), r||4.5, 0, Math.PI*2);
+  if(filled === false){ ctx.fillStyle = '#F6F5F1'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=color; ctx.stroke(); }
+  else { ctx.fillStyle = color; ctx.fill(); }
+  ctx.restore();
+}
+function label(ctx, m, xm, ym, text, color, dx, dy){
+  ctx.save();
+  ctx.fillStyle = color; ctx.font = '600 12px "Source Sans 3", sans-serif';
+  ctx.fillText(text, m.x(xm)+(dx||6), m.y(ym)+(dy||-6));
+  ctx.restore();
+}
+
+/* ================= MODULE 1: LIMITS ================= */
+(function(){
+  const canvas = document.getElementById('c1');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('s1');
+  const rx = document.getElementById('r1-x'), rfx = document.getElementById('r1-fx');
+  const xMin=-1, xMax=5, yMin=-1, yMax=7.5;
+  const m = makeMapper(canvas, xMin, xMax, yMin, yMax);
+  const f = (x)=> x + 2; // simplified form of (x^2-4)/(x-2)
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawAxes(ctx, m, xMin, xMax, yMin, yMax, 1);
+    // draw in two pieces to leave the hole visible
+    plotFn(ctx, m, (x)=> x<2 ? f(x) : null, xMin, 2, '#202B42');
+    plotFn(ctx, m, (x)=> x>2 ? f(x) : null, 2, xMax, '#202B42');
+    dot(ctx, m, 2, 4, '#202B42', 5, false); // hollow hole
+    const xv = parseFloat(slider.value);
+    const isHole = Math.abs(xv-2) < 0.006;
+    const fv = isHole ? null : f(xv);
+    if(!isHole){
+      dot(ctx, m, xv, fv, '#A6392B', 5.5, true);
+      ctx.save(); ctx.strokeStyle='#A6392B'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(m.x(xv), m.y(0)); ctx.lineTo(m.x(xv), m.y(fv)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m.x(xMin), m.y(fv)); ctx.lineTo(m.x(xv), m.y(fv)); ctx.stroke();
+      ctx.restore();
+      label(ctx, m, xv, fv, `(${xv.toFixed(2)}, ${fv.toFixed(2)})`, '#A6392B', 8, -10);
+    }
+    rx.textContent = xv.toFixed(2);
+    rfx.textContent = isHole ? 'undefined (hole)' : fv.toFixed(2);
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+
+/* ================= MODULE 2: DERIVATIVE ================= */
+(function(){
+  const canvas = document.getElementById('c2');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('s2');
+  const rh = document.getElementById('r2-h'), rslope = document.getElementById('r2-slope');
+  const xMin=-0.5, xMax=3.2, yMin=-0.5, yMax=7.5;
+  const m = makeMapper(canvas, xMin, xMax, yMin, yMax);
+  const f = (x)=> x*x;
+  const a = 1;
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawAxes(ctx, m, xMin, xMax, yMin, yMax, 1);
+    plotFn(ctx, m, f, xMin, xMax, '#202B42');
+
+    // true tangent line (faint, always shown as reference)
+    ctx.save(); ctx.strokeStyle = '#CBDBD4'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(m.x(xMin), m.y(2*xMin-1)); ctx.lineTo(m.x(xMax), m.y(2*xMax-1)); ctx.stroke();
+    ctx.restore();
+
+    let h = parseFloat(slider.value);
+    if(Math.abs(h) < 0.02) h = h < 0 ? -0.02 : 0.02;
+    const qx = a+h, qy = f(qx);
+    const slope = ((f(qx)-f(a))/h);
+
+    // secant line, extended across viewport
+    ctx.save(); ctx.strokeStyle = '#A6392B'; ctx.lineWidth = 2.4;
+    const y0 = f(a) + slope*(xMin-a), y1 = f(a) + slope*(xMax-a);
+    ctx.beginPath(); ctx.moveTo(m.x(xMin), m.y(y0)); ctx.lineTo(m.x(xMax), m.y(y1)); ctx.stroke();
+    ctx.restore();
+
+    dot(ctx, m, a, f(a), '#202B42', 5, true);
+    label(ctx, m, a, f(a), 'P (1, 1)', '#202B42', -46, 14);
+    dot(ctx, m, qx, qy, '#A6392B', 5, true);
+    label(ctx, m, qx, qy, `Q (${qx.toFixed(2)}, ${qy.toFixed(2)})`, '#A6392B', 8, -10);
+
+    rh.textContent = h.toFixed(2);
+    rslope.textContent = slope.toFixed(2);
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+
+/* ================= MODULE 3: INTEGRAL (Riemann sums) ================= */
+(function(){
+  const canvas = document.getElementById('c3');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('s3');
+  const nLabel = document.getElementById('r3-n-label');
+  const rsum = document.getElementById('r3-sum'), rgap = document.getElementById('r3-gap');
+  const buttons = document.querySelectorAll('#m3 .btnrow button');
+  let mode = 'left';
+  const a=0, b=6;
+  const xMin=-0.4, xMax=6.6, yMin=-0.5, yMax=9.5;
+  const m = makeMapper(canvas, xMin, xMax, yMin, yMax);
+  const f = (x)=> -0.5*x*x + 4*x;
+  const exact = 36;
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const n = parseInt(slider.value);
+    const dx = (b-a)/n;
+    let sum = 0;
+
+    ctx.save();
+    for(let i=0;i<n;i++){
+      const xL = a+i*dx, xR = xL+dx;
+      let xs, height;
+      if(mode==='left'){ xs=xL; } else if(mode==='right'){ xs=xR; } else { xs=(xL+xR)/2; }
+      height = f(xs);
+      sum += height*dx;
+      const py0 = m.y(0), py1 = m.y(height);
+      ctx.fillStyle = 'rgba(166,57,43,0.16)';
+      ctx.strokeStyle = 'rgba(166,57,43,0.55)'; ctx.lineWidth=1;
+      const rx = m.x(xL), rw = m.x(xR)-m.x(xL);
+      ctx.fillRect(rx, Math.min(py0,py1), rw, Math.abs(py1-py0));
+      ctx.strokeRect(rx, Math.min(py0,py1), rw, Math.abs(py1-py0));
+    }
+    ctx.restore();
+
+    drawAxes(ctx, m, xMin, xMax, yMin, yMax, 1);
+    plotFn(ctx, m, (x)=> (x>=a&&x<=b)? f(x): null, xMin, xMax, '#202B42', 2.6);
+
+    nLabel.textContent = n;
+    rsum.textContent = sum.toFixed(3);
+    rgap.textContent = Math.abs(exact-sum).toFixed(3);
+  }
+  slider.addEventListener('input', draw);
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      buttons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      draw();
+    });
+  });
+  draw();
+})();
+
+/* ================= MODULE 4: FTC ================= */
+(function(){
+  const canvas = document.getElementById('c4');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('s4');
+  const rx = document.getElementById('r4-x'), rfx = document.getElementById('r4-fx'),
+        rAx = document.getElementById('r4-Ax'), rslope = document.getElementById('r4-slope');
+  const xMin=-0.4, xMax=6.4, yMin=-1, yMax=11.5;
+  const m = makeMapper(canvas, xMin, xMax, yMin, yMax);
+  const f = (t)=> 0.5*t + 1;
+  const A = (x)=> 0.25*x*x + x; // antiderivative, A(0)=0
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const xv = parseFloat(slider.value);
+
+    // shade area under f from 0 to xv
+    ctx.save();
+    ctx.fillStyle = 'rgba(63,111,94,0.16)';
+    ctx.beginPath();
+    ctx.moveTo(m.x(0), m.y(0));
+    for(let px=0; px<=m.x(xv)-m.pad.l; px++){
+      const xm = 0 + (px/m.plotW)*(xMax-xMin);
+      if(xm>xv) break;
+      ctx.lineTo(m.x(xm), m.y(f(xm)));
+    }
+    ctx.lineTo(m.x(xv), m.y(0));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    drawAxes(ctx, m, xMin, xMax, yMin, yMax, 1);
+    plotFn(ctx, m, f, xMin, xMax, '#3F6F5E', 2.4);
+    plotFn(ctx, m, (x)=> (x>=0 && x<=xMax) ? A(x) : null, xMin, xMax, '#A6392B', 2);
+
+    // tangent to A at xv, short segment
+    const slope = f(xv);
+    const half = 0.7;
+    const y0 = A(xv) - slope*half, y1 = A(xv) + slope*half;
+    ctx.save(); ctx.strokeStyle = '#202B42'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(m.x(xv-half), m.y(y0)); ctx.lineTo(m.x(xv+half), m.y(y1)); ctx.stroke();
+    ctx.restore();
+
+    dot(ctx, m, xv, f(xv), '#3F6F5E', 5, true);
+    label(ctx, m, xv, f(xv), 'f(x)', '#3F6F5E', 8, -8);
+    dot(ctx, m, xv, A(xv), '#A6392B', 5, true);
+    label(ctx, m, xv, A(xv), 'A(x)', '#A6392B', 8, -8);
+
+    rx.textContent = xv.toFixed(2);
+    rfx.textContent = f(xv).toFixed(2);
+    rAx.textContent = A(xv).toFixed(2);
+    rslope.textContent = slope.toFixed(2);
+  }
+  slider.addEventListener('input', draw);
+  draw();
+})();
+</script>
+
+</body>
+</html>

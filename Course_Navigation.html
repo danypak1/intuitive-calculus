@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intuitive Calculus — Course Navigation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:      #F6F5F1;
+    --paper-line: #E4E1D6;
+    --card:       #FFFFFF;
+    --ink:        #202B42;
+    --ink-soft:   #5B6478;
+    --ink-faint:  #63698B;
+    --brick:      #A6392B;
+    --brick-dim:  #C77A6E;
+    --sage:       #3F6F5E;
+    --sage-dim:   #CBDBD4;
+    --rule:       #DEDAD0;
+    --shadow:     0 1px 2px rgba(32,43,66,0.04), 0 6px 20px rgba(32,43,66,0.05);
+    --header-glass: rgba(246,245,241,0.86);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:      #171C28;
+      --paper-line: #1F2636;
+      --card:       #1E2534;
+      --ink:        #E9E7DE;
+      --ink-soft:   #A9AFC1;
+      --ink-faint:  #7E86A0;
+      --brick:      #D98A7B;
+      --brick-dim:  #7E463C;
+      --sage:       #7EB4A0;
+      --sage-dim:   #2C463D;
+      --rule:       #2B3346;
+      --shadow:     0 1px 2px rgba(0,0,0,0.25), 0 6px 20px rgba(0,0,0,0.3);
+      --header-glass: rgba(23,28,40,0.86);
+      color-scheme: dark;
+    }
+    .pill.solid:hover{ color:var(--paper); }
+    .unit-row:hover{ background:rgba(126,180,160,0.07); }
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/40px 40px,
+      var(--paper);
+    background-attachment: fixed;
+    color:var(--ink);
+    font-family:'Source Sans 3', system-ui, sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{ color:inherit; }
+
+  ::selection{ background:var(--sage-dim); }
+
+  /* ---------- Sticky header ---------- */
+  header.top{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px;
+    padding:14px 28px;
+    background:var(--header-glass);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--rule);
+  }
+  /* Thin course-progress bar along the header's bottom edge (width set from JS) */
+  header.top::after{
+    content:''; position:absolute; left:0; bottom:-1px; height:2px;
+    background:var(--sage);
+    width:calc(var(--progress, 0) * 100%);
+    transition:width .35s ease;
+  }
+  header.top .brand{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+    letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  header.top .brand em{ color:var(--brick); font-style:normal; }
+
+  .search-wrap{
+    position:relative;
+    width:min(340px, 42vw);
+  }
+  #search{
+    width:100%;
+    padding:9px 14px 9px 34px;
+    border-radius:8px;
+    border:1px solid var(--rule);
+    background:var(--card);
+    font-family:inherit;
+    font-size:0.92rem;
+    color:var(--ink);
+    outline:none;
+    text-overflow:ellipsis;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  #search::placeholder{ color:var(--ink-faint); opacity:1; }
+  #search:focus{ border-color:var(--sage); box-shadow:0 0 0 3px var(--sage-dim); }
+  .search-wrap svg{
+    position:absolute; left:11px; top:50%; transform:translateY(-50%);
+    width:14px; height:14px; stroke:var(--ink-faint); fill:none; stroke-width:2;
+  }
+  #search-clear{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    width:22px; height:22px; border:none; border-radius:50%;
+    background:transparent; color:var(--ink-faint); font-size:1.1rem; line-height:1;
+    cursor:pointer; display:none; align-items:center; justify-content:center;
+    transition:background .15s ease, color .15s ease;
+  }
+  #search-clear:hover{ background:var(--sage-dim); color:var(--ink); }
+  .search-wrap.has-query #search-clear{ display:flex; }
+  .search-wrap.has-query #search{ padding-right:32px; }
+  #search-count{
+    font-size:0.78rem; color:var(--ink-faint); white-space:nowrap; display:none;
+  }
+  .no-results{
+    display:none; text-align:center; padding:60px 20px; color:var(--ink-soft);
+  }
+  .no-results.show{ display:block; }
+  .no-results .big{ font-family:'Fraunces', serif; font-size:1.2rem; color:var(--ink); margin-bottom:6px; }
+
+  body.search-active .hero,
+  body.search-active .toc,
+  body.search-active .start-here{ display:none; }
+  main.chapters{ scroll-margin-top:80px; }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    max-width:1080px; margin:0 auto;
+    padding:64px 28px 20px;
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:28px;
+    align-items:center;
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(2.1rem, 4vw, 3.1rem);
+    line-height:1.06;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 .accent{
+    color:var(--brick);
+    font-style:italic;
+    font-weight:500;
+  }
+  .hero p.lede{
+    font-size:1.08rem;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0 0 22px;
+  }
+  .note-handwritten{
+    font-family:'Caveat', cursive;
+    font-size:1.35rem;
+    color:var(--brick);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .note-handwritten svg{ width:30px; height:20px; }
+
+  .stat-strip{
+    display:grid; grid-template-columns:1fr 1fr; gap:18px 22px;
+    margin-top:26px;
+    padding-top:18px;
+    border-top:1px solid var(--rule);
+  }
+  .stat-strip div{ font-size:0.86rem; color:var(--ink-soft); }
+  .stat-strip strong{
+    display:block; font-family:'Fraunces', serif; font-weight:600;
+    font-size:1.3rem; color:var(--ink);
+  }
+
+  /* ---------- Hero SVG animation ---------- */
+  .diagram{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:14px;
+  }
+  .diagram svg{ width:100%; height:auto; display:block; }
+  .diagram .cap{
+    text-align:center; font-size:0.78rem; color:var(--ink-faint);
+    margin-top:6px; font-style:italic;
+  }
+
+  .curve{ fill:none; stroke:var(--ink); stroke-width:2.5; opacity:0.75; }
+  .secant{ stroke:var(--brick); stroke-width:2; }
+  .pt-fixed{ fill:var(--ink); }
+  .pt-moving{ fill:var(--brick); }
+  .lbl{ font-family:'Source Sans 3', sans-serif; font-size:12px; fill:var(--ink-soft); }
+  .lbl-dynamic{ font-family:'Source Sans 3', sans-serif; font-size:12.5px; font-weight:600; }
+
+  @keyframes slideQ{
+    0%   { cx:456; cy:52; }
+    55%  { cx:456; cy:52; }
+    90%  { cx:196; cy:157; }
+    100% { cx:196; cy:157; }
+  }
+  @keyframes slideLine{
+    0%   { x2:456; y2:52; }
+    55%  { x2:456; y2:52; }
+    90%  { x2:196; y2:157; }
+    100% { x2:196; y2:157; }
+  }
+  @keyframes fadeSecant{
+    0%{ opacity:1; } 55%{ opacity:1; } 90%{ opacity:0; } 100%{ opacity:0; }
+  }
+  @keyframes fadeTangent{
+    0%{ opacity:0; } 55%{ opacity:0; } 90%{ opacity:1; } 100%{ opacity:1; }
+  }
+  .anim-q{ animation:slideQ 5s cubic-bezier(.65,0,.35,1) infinite alternate; }
+  .anim-line{ animation:slideLine 5s cubic-bezier(.65,0,.35,1) infinite alternate; }
+  .lbl-secant{ animation:fadeSecant 5s cubic-bezier(.65,0,.35,1) infinite alternate; }
+  .lbl-tangent{ animation:fadeTangent 5s cubic-bezier(.65,0,.35,1) infinite alternate; }
+
+  @media (prefers-reduced-motion: reduce){
+    .anim-q, .anim-line, .lbl-secant, .lbl-tangent{ animation:none; }
+    .anim-q{ cx:196; cy:157; }
+    .anim-line{ x2:196; y2:157; }
+    .lbl-secant{ opacity:0; }
+    .lbl-tangent{ opacity:1; }
+  }
+
+  /* ---------- Start here cards ---------- */
+  .start-here{
+    max-width:1080px; margin:34px auto 0; padding:0 28px;
+  }
+  .start-here .kicker{
+    font-size:0.78rem; text-transform:uppercase; letter-spacing:0.11em;
+    color:var(--sage); font-weight:600; margin-bottom:12px;
+  }
+  .cards{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .card{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .card h3{
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.15rem; margin:0;
+  }
+  .card p{ margin:0; color:var(--ink-soft); font-size:0.92rem; }
+  .card .links{ margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 13px;
+    border-radius:999px;
+    font-size:0.85rem; font-weight:600;
+    text-decoration:none;
+    border:1px solid var(--rule);
+    background:var(--paper);
+    color:var(--ink);
+    transition:border-color .15s ease, transform .1s ease, background .15s ease;
+  }
+  .pill:hover{ border-color:var(--brick); color:var(--brick); transform:translateY(-1px); }
+  .pill.solid{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .pill.solid:hover{ background:var(--brick); border-color:var(--brick); color:#fff; }
+  .play-cta{ display:flex; justify-content:center; margin-top:12px; }
+
+  /* ---------- Chapters ---------- */
+  main.chapters{
+    max-width:1080px; margin:0 auto; padding:52px 28px 40px;
+  }
+  .chapter{ margin-bottom:44px; }
+  .chapter-head{
+    display:flex; align-items:baseline; gap:14px;
+    margin-bottom:6px;
+  }
+  .chapter-tick{ width:34px; height:22px; flex:none; }
+  .chapter-tick .c{ fill:none; stroke:var(--sage); stroke-width:2; opacity:.8;}
+  .chapter-tick .t{ stroke:var(--brick); stroke-width:2; }
+  .chapter-tick .p{ fill:var(--brick); }
+
+  .chapter-num{
+    font-family:'Fraunces', serif; font-weight:600; font-size:0.95rem;
+    color:var(--sage);
+  }
+  .chapter h2{
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.5rem;
+    margin:0;
+  }
+  .chapter-sub{
+    color:var(--ink-faint); font-size:0.85rem; margin:2px 0 16px 48px;
+  }
+
+  .unit-list{ border-top:1px solid var(--rule); }
+  .unit-row{
+    display:grid;
+    grid-template-columns: 26px 44px 1fr auto;
+    align-items:center;
+    gap:16px;
+    padding:13px 4px 13px 4px;
+    border-bottom:1px solid var(--rule);
+    transition:background .12s ease;
+  }
+  .unit-row:hover{ background:rgba(63,111,94,0.05); }
+  .unit-row .num{
+    font-family:'Fraunces', serif; font-weight:500; font-size:0.95rem;
+    color:var(--ink-faint);
+  }
+  .unit-row .title{
+    font-family:'Fraunces', serif; font-weight:500; font-size:1.08rem;
+    letter-spacing:0.003em;
+  }
+  .unit-row .links{ display:flex; gap:8px; white-space:nowrap; }
+  .unit-row .links a{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:0.82rem; font-weight:600; text-decoration:none;
+    padding:5px 11px; border-radius:7px; border:1px solid var(--rule);
+    background:var(--card); color:var(--ink-soft);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .unit-row .links a::before{
+    content:''; width:6px; height:6px; border-radius:50%; flex:none;
+    background:var(--rule); transition:background .15s ease;
+  }
+  .unit-row .links a.les::before{ background:var(--sage-dim); }
+  .unit-row .links a.sol::before{ background:var(--brick-dim); }
+  .unit-row .links a.les:hover::before{ background:var(--sage); }
+  .unit-row .links a.sol:hover::before{ background:var(--brick); }
+  .unit-row .links a:hover{ border-color:var(--sage); color:var(--sage); }
+  .unit-row .links a.sol:hover{ border-color:var(--brick); color:var(--brick); }
+
+  .unit-row.hidden{ display:none; }
+  .chapter.hidden{ display:none; }
+
+  /* ---------- Progress ---------- */
+  .done-box{
+    appearance:none; -webkit-appearance:none;
+    width:18px; height:18px; margin:0;
+    border:1.5px solid var(--rule); border-radius:5px;
+    background:var(--card); cursor:pointer;
+    display:inline-grid; place-items:center;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .done-box:hover{ border-color:var(--sage); }
+  .done-box:checked{ background:var(--sage); border-color:var(--sage); }
+  .done-box:checked::after{
+    content:''; width:9px; height:5px;
+    border-left:2px solid var(--card); border-bottom:2px solid var(--card);
+    transform:rotate(-45deg) translateY(-1px);
+  }
+  .unit-row.is-done .num{ color:var(--ink-faint); }
+  .unit-row.is-done .title{
+    color:var(--ink-faint);
+    text-decoration:line-through;
+    text-decoration-color:var(--rule);
+    text-decoration-thickness:1px;
+  }
+  .chapter-sub .ch-progress{ color:var(--sage); font-weight:600; }
+
+  .resume{
+    margin-top:20px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .resume .resume-note{ font-size:0.88rem; color:var(--ink-soft); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    max-width:1080px; margin:0 auto; padding:20px 28px 70px;
+    border-top:1px solid var(--rule);
+    padding-top:28px;
+  }
+  footer .zips{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  footer p{ color:var(--ink-faint); font-size:0.85rem; max-width:60ch; }
+
+  @media (max-width:760px){
+    .hero{ grid-template-columns:1fr; padding-top:40px; }
+    .cards{ grid-template-columns:1fr; }
+    .unit-row{ grid-template-columns:24px 32px 1fr; }
+    .unit-row .links{ grid-column:1/-1; margin-top:6px; }
+    .chapter-sub{ margin-left:0; }
+    .stat-strip{ grid-template-columns:1fr; }
+
+    header.top{ flex-wrap:wrap; row-gap:10px; padding:12px 20px; }
+    header.top .brand{ flex:1 1 100%; font-size:0.98rem; }
+    .search-wrap{ width:100%; flex:1 1 100%; }
+  }
+
+  :focus-visible{ outline:2px solid var(--brick); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Intuitive Calculus <em>·</em> Course Map</div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Try “chain rule” or “29”" autocomplete="off" aria-label="Search units by title or number">
+    <button id="search-clear" type="button" aria-label="Clear search">&times;</button>
+  </div>
+  <span id="search-count" aria-live="polite"></span>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="note-handwritten">
+      <svg viewBox="0 0 40 24"><path d="M2 4 C 18 2, 30 10, 36 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M28 14 L36 18 L30 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      start with the diagnostic
+    </div>
+    <h1>Every idea starts<br>as a <span class="accent">secant line</span><br>learning to be tangent.</h1>
+    <p class="lede">A complete, self-study calculus course built from the ground up for learners who've never felt confident in math. No formal proofs — just plain language, worked examples, and enough problems to actually master each idea.</p>
+
+    <div class="stat-strip">
+      <div><strong>41</strong>units, fully sequenced</div>
+      <div><strong>900+</strong>worked & practice problems</div>
+      <div><strong>2</strong>files per unit — lesson & solutions</div>
+      <div><strong>100%</strong>calibrated to real exam questions</div>
+    </div>
+
+    <div class="resume">
+      <a class="pill solid" id="resume-link" href="Unit_01_Lesson_and_Problems.pdf">Start with Unit 01 &rarr;</a>
+      <span class="resume-note" id="resume-note"></span>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 500 220" role="img" aria-label="A secant line sliding along a curve until it becomes the tangent line at a point">
+      <path class="curve" d="M30,205 C110,175 150,168 180,157 C230,138 300,100 360,68 C400,48 430,38 470,26"/>
+      <line class="secant anim-line" x1="196" y1="157" x2="456" y2="52"/>
+      <circle class="pt-fixed" cx="196" cy="157" r="4.5"/>
+      <circle class="pt-moving anim-q" cx="456" cy="52" r="4.5"/>
+      <text class="lbl" x="188" y="176">P</text>
+      <text class="lbl-dynamic lbl-secant" x="330" y="90" fill="var(--brick)">secant line</text>
+      <text class="lbl-dynamic lbl-tangent" x="240" y="185" fill="var(--brick)">tangent line</text>
+    </svg>
+    <div class="cap">Unit 1's whole idea, animated: let the second point slide in.</div>
+    <a class="pill solid play-cta" href="Interactive_Big_Ideas.html">Play with it yourself &rarr;</a>
+  </div>
+</section>
+
+<section class="start-here">
+  <div class="kicker">Start here, before Unit 1</div>
+  <div class="cards">
+    <div class="card">
+      <h3>Diagnostic: algebra skills check</h3>
+      <p>36 quick questions covering everything the course assumes you already know — fractions, factoring, function notation, radicals. Not a test to pass, just a map of where to spend 20 minutes first.</p>
+      <div class="links">
+        <a class="pill solid" href="Diagnostic_Questions.pdf">Questions (PDF)</a>
+        <a class="pill" href="Diagnostic_Answer_Key.pdf">Answer key (PDF)</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Five quick-reference cheat sheets</h3>
+      <p>Decision trees for "which technique do I use," a related-rates-vs-optimization sorter, and one master formula sheet for the whole course.</p>
+      <div class="links">
+        <a class="pill solid" href="Cheat_Sheet_1_Integration_Technique_Decision_Tree.pdf">Integration guide</a>
+        <a class="pill" href="Cheat_Sheet_2_Differentiation_Rules_Decision_Guide.pdf">Differentiation guide</a>
+        <a class="pill" href="Cheat_Sheet_4_Master_Formula_Reference.pdf">Master formulas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="chapters" id="chapters">
+  <div class="no-results" id="no-results" role="status">
+    <div class="big">No units match that search</div>
+    <div>Try a different word, or a unit number like “14”.</div>
+  </div>
+</main>
+
+<footer>
+  <div class="zips">
+    <a class="pill" href="Calculus_Course_All_82_PDFs.zip">Download all 41 units (.zip)</a>
+    <a class="pill" href="Cheat_Sheets_All_5.zip">Download all 5 cheat sheets (.zip)</a>
+  </div>
+  <p>Keep this file in the same folder as your PDFs — every link above is relative, so the whole course stays portable. Built as a companion index, not a replacement for the material itself.</p>
+</footer>
+
+<script>
+const COURSE = [
+  { chapter:"Chapter 2", title:"Limits", units:[
+    [1,"Rates of Change and Tangent Lines to Curves"],
+    [2,"The Limit of a Function and Limit Laws"],
+    [3,"The Precise Definition of a Limit"],
+    [4,"One-Sided Limits"],
+    [5,"Continuity"],
+    [6,"Limits Involving Infinity; Asymptotes of Graphs"],
+  ]},
+  { chapter:"Chapter 3", title:"Derivatives", units:[
+    [7,"The Derivative at a Point"],
+    [8,"The Derivative as a Function"],
+    [9,"The Power Rule and Basic Differentiation Rules"],
+    [10,"The Product Rule and Quotient Rule"],
+    [11,"The Derivative as a Rate of Change"],
+    [12,"Derivatives of Trigonometric Functions"],
+    [13,"The Chain Rule"],
+    [14,"Implicit Differentiation"],
+    [15,"Related Rates"],
+    [16,"Linearization and Differentials"],
+  ]},
+  { chapter:"Chapter 4", title:"Applications of Derivatives", units:[
+    [17,"Extreme Values of Functions on Closed Intervals"],
+    [18,"The Mean Value Theorem"],
+    [19,"Monotonic Functions and the First Derivative Test"],
+    [20,"Concavity and Curve Sketching"],
+    [21,"Applied Optimization"],
+    [22,"Newton's Method"],
+    [23,"Antiderivatives"],
+  ]},
+  { chapter:"Chapter 5", title:"Integrals", units:[
+    [24,"Area and Estimating with Finite Sums"],
+    [25,"Sigma Notation and Limits of Finite Sums"],
+    [26,"The Definite Integral"],
+    [27,"The Fundamental Theorem of Calculus"],
+    [28,"Indefinite Integrals and the Substitution Method"],
+    [29,"Definite Integral Substitutions and the Area Between Curves"],
+  ]},
+  { chapter:"Chapter 7", title:"Transcendental Functions", units:[
+    [30,"Inverse Functions and Their Derivatives"],
+    [31,"Natural Logarithms"],
+    [32,"Exponential Functions"],
+    [33,"Exponential Change and Separable Differential Equations"],
+    [34,"Indeterminate Forms and L'Hôpital's Rule"],
+    [35,"Inverse Trigonometric Functions"],
+  ]},
+  { chapter:"Chapter 8", title:"Techniques of Integration", units:[
+    [36,"Using Basic Integration Formulas"],
+    [37,"Integration by Parts"],
+    [38,"Trigonometric Integrals"],
+    [39,"Trigonometric Substitution"],
+    [40,"Integration of Rational Functions by Partial Fractions"],
+    [41,"Improper Integrals"],
+  ]},
+];
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+function normalize(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+function tickIcon(){
+  return `<svg class="chapter-tick" viewBox="0 0 40 24"><path class="c" d="M2,20 C12,16 20,14 26,10 C31,7 34,5 38,3"/><line class="t" x1="14" y1="18" x2="34" y2="6"/><circle class="p" cx="22" cy="13" r="2.5"/></svg>`;
+}
+
+const root = document.getElementById('chapters');
+COURSE.forEach(ch=>{
+  const section = document.createElement('section');
+  section.className = 'chapter';
+  section.dataset.chapter = ch.chapter;
+
+  const rows = ch.units.map(([num,title])=>`
+    <div class="unit-row" data-unit="${num}" data-search="${normalize(pad(num) + ' ' + title.toLowerCase())}">
+      <input type="checkbox" class="done-box" data-unit="${num}" aria-label="Mark Unit ${pad(num)} as done">
+      <div class="num">${pad(num)}</div>
+      <div class="title">${title}</div>
+      <div class="links">
+        <a class="les" href="Unit_${pad(num)}_Lesson_and_Problems.pdf">Lesson</a>
+        <a class="sol" href="Unit_${pad(num)}_Solutions.pdf">Solutions</a>
+      </div>
+    </div>`).join('');
+
+  section.innerHTML = `
+    <div class="chapter-head">
+      ${tickIcon()}
+      <span class="chapter-num">${ch.chapter}</span>
+      <h2>${ch.title}</h2>
+    </div>
+    <div class="chapter-sub">${ch.units.length} units<span class="ch-progress"></span></div>
+    <div class="unit-list">${rows}</div>
+  `;
+  root.appendChild(section);
+});
+
+/* ---------- Progress (saved per-browser via localStorage) ---------- */
+const STORE_KEY = 'intuitiveCalcDone';
+let done;
+try{ done = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]')); }
+catch{ done = new Set(); }
+
+const ALL_UNITS = COURSE.flatMap(ch => ch.units);
+const TOTAL = ALL_UNITS.length;
+const resumeLink = document.getElementById('resume-link');
+const resumeNote = document.getElementById('resume-note');
+const headerEl = document.querySelector('header.top');
+
+function updateProgress(){
+  headerEl.style.setProperty('--progress', done.size / TOTAL);
+
+  document.querySelectorAll('.chapter').forEach(chapterEl=>{
+    const rows = chapterEl.querySelectorAll('.unit-row');
+    const d = [...rows].filter(r => done.has(+r.dataset.unit)).length;
+    chapterEl.querySelector('.ch-progress').textContent = d ? ` · ${d} of ${rows.length} done` : '';
+  });
+
+  const next = ALL_UNITS.find(([num]) => !done.has(num));
+  if(!next){
+    resumeLink.innerHTML = 'All 41 units done — review time &rarr;';
+    resumeLink.href = 'Cheat_Sheet_4_Master_Formula_Reference.pdf';
+    resumeNote.textContent = 'Keep the master formula sheet close.';
+  }else{
+    const [num, title] = next;
+    resumeLink.innerHTML = `${done.size ? 'Continue' : 'Start'} with Unit ${pad(num)} &rarr;`;
+    resumeLink.href = `Unit_${pad(num)}_Lesson_and_Problems.pdf`;
+    resumeNote.textContent = done.size
+      ? `${done.size} of ${TOTAL} units done · next up: ${title}`
+      : `First up: ${title}`;
+  }
+}
+
+document.querySelectorAll('.done-box').forEach(box=>{
+  const isDone = done.has(+box.dataset.unit);
+  box.checked = isDone;
+  box.closest('.unit-row').classList.toggle('is-done', isDone);
+});
+
+root.addEventListener('change', e=>{
+  if(!e.target.classList.contains('done-box')) return;
+  const num = +e.target.dataset.unit;
+  if(e.target.checked) done.add(num); else done.delete(num);
+  e.target.closest('.unit-row').classList.toggle('is-done', e.target.checked);
+  localStorage.setItem(STORE_KEY, JSON.stringify([...done]));
+  updateProgress();
+});
+
+updateProgress();
+
+const search = document.getElementById('search');
+const countEl = document.getElementById('search-count');
+const searchWrap = document.querySelector('.search-wrap');
+const clearBtn = document.getElementById('search-clear');
+const noResults = document.getElementById('no-results');
+let wasEmpty = true;
+
+function runSearch(){
+  const q = normalize(search.value.trim().toLowerCase());
+  const words = q.split(/\s+/).filter(Boolean);
+  let visible = 0;
+  document.querySelectorAll('.chapter').forEach(chapterEl=>{
+    let chapterHasVisible = false;
+    chapterEl.querySelectorAll('.unit-row').forEach(row=>{
+      // Match if every typed word appears somewhere in the title/number —
+      // words don't need to be adjacent, so "trig substitution" still finds
+      // "Trigonometric Substitution".
+      const match = words.length===0 || words.every(w => row.dataset.search.includes(w));
+      row.classList.toggle('hidden', !match);
+      if(match){ chapterHasVisible = true; visible++; }
+    });
+    chapterEl.classList.toggle('hidden', !chapterHasVisible);
+  });
+
+  countEl.style.display = q ? 'inline' : 'none';
+  countEl.textContent = q ? (visible + (visible===1 ? ' match' : ' matches')) : '';
+  searchWrap.classList.toggle('has-query', !!q);
+  noResults.classList.toggle('show', !!q && visible===0);
+
+  // Entering search mode: hide the hero/cards so results sit right under the header,
+  // and jump to top so nothing needs manual scrolling to be seen.
+  const isEmpty = !q;
+  document.body.classList.toggle('search-active', !isEmpty);
+  if(wasEmpty && !isEmpty){
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  wasEmpty = isEmpty;
+}
+
+search.addEventListener('input', runSearch);
+clearBtn.addEventListener('click', ()=>{
+  search.value = '';
+  runSearch();
+  search.focus();
+});
+search.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){ search.value=''; runSearch(); }
+});
+</script>
+
+</body>
+</html>
